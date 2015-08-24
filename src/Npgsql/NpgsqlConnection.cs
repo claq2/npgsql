@@ -53,7 +53,7 @@ namespace Npgsql
     public sealed class NpgsqlConnection : DbConnection
 #else
     [System.ComponentModel.DesignerCategory("")]
-    public sealed partial class NpgsqlConnection : DbConnection
+    public sealed partial class NpgsqlConnection : DbConnection, INpgsqlConnection
 #endif
     {
         #region Fields
