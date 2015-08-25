@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Data;
 using System.IO;
 using System.Net.Security;
@@ -9,7 +10,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 
 namespace Npgsql
 {
-    public interface INpgsqlConnection
+    public interface INpgsqlConnection : IDbConnection, IDisposable, IComponent
     {
         /// <summary>
         /// Opens a database connection with the property settings specified by the
