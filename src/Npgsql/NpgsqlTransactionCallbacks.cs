@@ -40,14 +40,14 @@ namespace Npgsql
 
     internal class NpgsqlTransactionCallbacks : MarshalByRefObject, INpgsqlTransactionCallbacks
     {
-        private INpgsqlConnection _connection;
+        private NpgsqlConnection _connection;
         private readonly string _connectionString;
         private bool _closeConnectionRequired;
         private bool _prepared;
         private readonly string _txName = Guid.NewGuid().ToString();
         private static readonly NpgsqlLogger Log = NpgsqlLogManager.GetCurrentClassLogger();
 
-        public NpgsqlTransactionCallbacks(INpgsqlConnection connection)
+        public NpgsqlTransactionCallbacks(NpgsqlConnection connection)
         {
             _connection = connection;
             _connectionString = _connection.ConnectionString;
@@ -62,7 +62,7 @@ namespace Npgsql
             _connection = null;
         }
 
-        private INpgsqlConnection GetConnection()
+        private NpgsqlConnection GetConnection()
         {
             if (_connection == null || (_connection.FullState & ConnectionState.Open) != ConnectionState.Open)
             {
@@ -104,7 +104,7 @@ namespace Npgsql
             if (!_prepared)
             {
                 Log.Debug("Prepare transaction");
-                INpgsqlConnection connection = GetConnection();
+                NpgsqlConnection connection = GetConnection();
                 connection.Connector.ExecuteInternalCommand(string.Format("PREPARE TRANSACTION '{0}'", _txName));
                 _prepared = true;
             }
@@ -113,7 +113,7 @@ namespace Npgsql
         public void RollbackTransaction()
         {
             Log.Debug("Rollback transaction");
-            INpgsqlConnection connection = GetConnection();
+            NpgsqlConnection connection = GetConnection();
 
             try
             {

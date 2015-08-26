@@ -10,10 +10,13 @@ using IsolationLevel = System.Data.IsolationLevel;
 
 namespace Npgsql
 {
+    /// <summary>
+    /// Blah
+    /// </summary>
     public interface INpgsqlConnection : IDbConnection, IDisposable, IComponent
     {
         /// <summary>
-        /// This is the asynchronous version of <see cref="Open"/>.
+        /// This is the asynchronous version of <see cref="IDbConnection.Open"/>.
         /// </summary>
         /// <remarks>
         /// Do not invoke other methods and properties of the <see cref="NpgsqlConnection"/> object until the returned Task is complete.
@@ -213,7 +216,7 @@ namespace Npgsql
         /// Can only be invoked on an open connection; if the connection is closed the registration is lost.
         /// </summary>
         /// <remarks>
-        /// To avoid registering the type for each connection, use the <see cref="RegisterEnumGlobally{T}"/> method.
+        /// To avoid registering the type for each connection, use the <see cref="NpgsqlConnection.RegisterEnumGlobally{T}"/> method.
         /// </remarks>
         /// <param name="pgName">
         /// A PostgreSQL type name for the corresponding enum type in the database.
