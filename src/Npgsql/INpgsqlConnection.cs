@@ -13,12 +13,6 @@ namespace Npgsql
     public interface INpgsqlConnection : IDbConnection, IDisposable, IComponent
     {
         /// <summary>
-        /// Opens a database connection with the property settings specified by the
-        /// <see cref="NpgsqlConnection.ConnectionString">ConnectionString</see>.
-        /// </summary>
-        void Open();
-
-        /// <summary>
         /// This is the asynchronous version of <see cref="Open"/>.
         /// </summary>
         /// <remarks>
@@ -27,15 +21,6 @@ namespace Npgsql
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task OpenAsync(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Gets or sets the string used to connect to a PostgreSQL database. See the manual for details.
-        /// </summary>
-        /// <value>The connection string that includes the server name,
-        /// the database name, and other parameters needed to establish
-        /// the initial connection. The default value is an empty string.
-        /// </value>
-        string ConnectionString { get; set; }
 
         /// <summary>
         /// Backend server host name.
@@ -51,12 +36,6 @@ namespace Npgsql
         /// If true, the connection will attempt to use SslStream instead of an internal TlsClientStream.
         /// </summary>
         bool UseSslStream { get; }
-        /// <summary>
-        /// Gets the time to wait while trying to establish a connection
-        /// before terminating the attempt and generating an error.
-        /// </summary>
-        /// <value>The time (in seconds) to wait for a connection to open. The default value is 15 seconds.</value>
-        int ConnectionTimeout { get; }
         /// <summary>
         /// Gets the time to wait while trying to execute a command
         /// before terminating the attempt and generating an error.
@@ -75,12 +54,6 @@ namespace Npgsql
         /// </remarks>
         /// <value>The time (in seconds) to wait. The default value is 15 seconds.</value>
         int ConnectionLifeTime { get; }
-        /// <summary>
-        /// Gets the name of the current database or the database to be used after a connection is opened.
-        /// </summary>
-        /// <value>The name of the current database or the name of the database to be
-        /// used after a connection is opened. The default value is the empty string.</value>
-        string Database { get; }
         /// <summary>
         /// Gets the database server name.
         /// </summary>
@@ -104,16 +77,11 @@ namespace Npgsql
         /// <value>A bitwise combination of the <see cref="System.Data.ConnectionState">ConnectionState</see> values. The default is <b>Closed</b>.</value>
         ConnectionState FullState { get; }
         /// <summary>
-        /// Gets whether the current state of the connection is Open or Closed
-        /// </summary>
-        /// <value>ConnectionState.Open, ConnectionState.Closed or ConnectionState.Connecting</value>
-        ConnectionState State { get; }
-        /// <summary>
         /// Creates and returns a <see cref="NpgsqlCommand">NpgsqlCommand</see>
         /// object associated with the <see cref="NpgsqlConnection">NpgsqlConnection</see>.
         /// </summary>
         /// <returns>A <see cref="NpgsqlCommand">NpgsqlCommand</see> object.</returns>
-        NpgsqlCommand CreateCommand();
+        new NpgsqlCommand CreateCommand();
         /// <summary>
         /// Begins a database transaction.
         /// </summary>
@@ -122,28 +90,12 @@ namespace Npgsql
         /// <remarks>
         /// Currently there's no support for nested transactions.
         /// </remarks>
-        NpgsqlTransaction BeginTransaction();
-        /// <summary>
-        /// Begins a database transaction with the specified isolation level.
-        /// </summary>
-        /// <param name="level">The <see cref="System.Data.IsolationLevel">isolation level</see> under which the transaction should run.</param>
-        /// <returns>A <see cref="NpgsqlTransaction">NpgsqlTransaction</see>
-        /// object representing the new transaction.</returns>
-        /// <remarks>
-        /// Currently the IsolationLevel ReadCommitted and Serializable are supported by the PostgreSQL backend.
-        /// There's no support for nested transactions.
-        /// </remarks>
-        NpgsqlTransaction BeginTransaction(IsolationLevel level);
+        new NpgsqlTransaction BeginTransaction();
         /// <summary>
         /// Enlist transation.
         /// </summary>
         /// <param name="transaction"></param>
         void EnlistTransaction(Transaction transaction);
-        /// <summary>
-        /// Releases the connection to the database.  If the connection is pooled, it will be
-        /// made available for re-use.  If it is non-pooled, the actual connection will be shutdown.
-        /// </summary>
-        void Close();
         /// <summary>
         /// Occurs on NoticeResponses from the PostgreSQL backend.
         /// </summary>
@@ -290,11 +242,5 @@ namespace Npgsql
         /// </param>
         /// <returns>The collection specified.</returns>
         DataTable GetSchema(string collectionName, string[] restrictions);
-        /// <summary>
-        /// This method changes the current database by disconnecting from the actual
-        /// database and connecting to the specified.
-        /// </summary>
-        /// <param name="dbName">The name of the database to use in place of the current database.</param>
-        void ChangeDatabase(String dbName);
     }
 }
