@@ -52,7 +52,7 @@ namespace Npgsql
     public sealed partial class NpgsqlCommand : DbCommand
 #else
     [System.ComponentModel.DesignerCategory("")]
-    public sealed partial class NpgsqlCommand : DbCommand, ICloneable
+    public sealed partial class NpgsqlCommand : DbCommand, ICloneable, INpgsqlCommand
 #endif
     {
         #region Fields
@@ -109,20 +109,20 @@ namespace Npgsql
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlCommand">NpgsqlCommand</see> class.
         /// </summary>
-        public NpgsqlCommand() : this(String.Empty, null, null) {}
+        public NpgsqlCommand() : this(String.Empty, null, null) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlCommand">NpgsqlCommand</see> class with the text of the query.
         /// </summary>
         /// <param name="cmdText">The text of the query.</param>
-        public NpgsqlCommand(String cmdText) : this(cmdText, null, null) {}
+        public NpgsqlCommand(String cmdText) : this(cmdText, null, null) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlCommand">NpgsqlCommand</see> class with the text of the query and a <see cref="NpgsqlConnection">NpgsqlConnection</see>.
         /// </summary>
         /// <param name="cmdText">The text of the query.</param>
         /// <param name="connection">A <see cref="NpgsqlConnection">NpgsqlConnection</see> that represents the connection to a PostgreSQL server.</param>
-        public NpgsqlCommand(String cmdText, NpgsqlConnection connection) : this(cmdText, connection, null) {}
+        public NpgsqlCommand(String cmdText, NpgsqlConnection connection) : this(cmdText, connection, null) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlCommand">NpgsqlCommand</see> class with the text of the query, a <see cref="NpgsqlConnection">NpgsqlConnection</see>, and the <see cref="NpgsqlTransaction">NpgsqlTransaction</see>.
@@ -184,7 +184,8 @@ namespace Npgsql
             }
             set
             {
-                if (value < 0) {
+                if (value < 0)
+                {
                     throw new ArgumentOutOfRangeException("value", value, "CommandTimeout can't be less than zero.");
                 }
 
@@ -293,7 +294,8 @@ namespace Npgsql
                 if (_isPrepared)
                 {
                     Contract.Assert(Connection != null);
-                    if (Connection.State != ConnectionState.Open || _prepareConnectionOpenId != Connection.OpenCounter) {
+                    if (Connection.State != ConnectionState.Open || _prepareConnectionOpenId != Connection.OpenCounter)
+                    {
                         _isPrepared = false;
                     }
                 }
@@ -304,7 +306,8 @@ namespace Npgsql
             {
                 Contract.Requires(!value || Connection != null);
                 _isPrepared = value;
-                if (value) {
+                if (value)
+                {
                     _prepareConnectionOpenId = Connection.OpenCounter;
                 }
             }
@@ -440,7 +443,8 @@ namespace Npgsql
         public override void Prepare()
         {
             Prechecks();
-            if (Parameters.Any(p => !p.IsTypeExplicitlySet)) {
+            if (Parameters.Any(p => !p.IsTypeExplicitlySet))
+            {
                 throw new InvalidOperationException("NpgsqlCommand.Prepare method requires all parameters to have an explicitly set type.");
             }
 
@@ -484,24 +488,24 @@ namespace Npgsql
                     var msg = _connector.ReadSingleMessage();
                     switch (msg.Code)
                     {
-                    case BackendMessageCode.CompletedResponse: // prepended messages, e.g. begin transaction
-                    case BackendMessageCode.ParseComplete:
-                    case BackendMessageCode.ParameterDescription:
-                        continue;
-                    case BackendMessageCode.RowDescription:
-                        var description = (RowDescriptionMessage) msg;
-                        FixupRowDescription(description, _queryIndex == 0);
-                        _queries[_queryIndex++].Description = description;
-                        continue;
-                    case BackendMessageCode.NoData:
-                        _queries[_queryIndex++].Description = null;
-                        continue;
-                    case BackendMessageCode.ReadyForQuery:
-                        Contract.Assume(_queryIndex == _queries.Count);
-                        IsPrepared = true;
-                        return;
-                    default:
-                        throw _connector.UnexpectedMessageReceived(msg.Code);
+                        case BackendMessageCode.CompletedResponse: // prepended messages, e.g. begin transaction
+                        case BackendMessageCode.ParseComplete:
+                        case BackendMessageCode.ParameterDescription:
+                            continue;
+                        case BackendMessageCode.RowDescription:
+                            var description = (RowDescriptionMessage)msg;
+                            FixupRowDescription(description, _queryIndex == 0);
+                            _queries[_queryIndex++].Description = description;
+                            continue;
+                        case BackendMessageCode.NoData:
+                            _queries[_queryIndex++].Description = null;
+                            continue;
+                        case BackendMessageCode.ReadyForQuery:
+                            Contract.Assume(_queryIndex == _queries.Count);
+                            IsPrepared = true;
+                            return;
+                        default:
+                            throw _connector.UnexpectedMessageReceived(msg.Code);
                     }
                 }
             }
@@ -511,7 +515,8 @@ namespace Npgsql
         {
             if (!IsPrepared) { return; }
 
-            foreach (var query in _queries) {
+            foreach (var query in _queries)
+            {
                 _connector.PrependInternalMessage(new CloseMessage(StatementOrPortal.Statement, query.PreparedStatementName));
             }
             _connector.PrependInternalMessage(SyncMessage.Instance);
@@ -525,34 +530,38 @@ namespace Npgsql
         void ProcessRawQuery()
         {
             _queries.Clear();
-            switch (CommandType) {
-            case CommandType.Text:
-                SqlQueryParser.ParseRawQuery(CommandText, _connection == null || _connection.UseConformantStrings, _parameters, _queries);
-                if (_queries.Count > 1 && _parameters.Any(p => p.IsOutputDirection)) {
-                    throw new NotSupportedException("Commands with multiple queries cannot have out parameters");
-                }
-                break;
-            case CommandType.TableDirect:
-                _queries.Add(new NpgsqlStatement("SELECT * FROM " + CommandText, new List<NpgsqlParameter>()));
-                break;
-            case CommandType.StoredProcedure:
-                var numInput = _parameters.Count(p => p.IsInputDirection);
-                var sb = new StringBuilder();
-                sb.Append("SELECT * FROM ");
-                sb.Append(CommandText);
-                sb.Append('(');
-                for (var i = 1; i <= numInput; i++) {
-                    sb.Append('$');
-                    sb.Append(i);
-                    if (i < numInput) {
-                        sb.Append(',');
+            switch (CommandType)
+            {
+                case CommandType.Text:
+                    SqlQueryParser.ParseRawQuery(CommandText, _connection == null || _connection.UseConformantStrings, _parameters, _queries);
+                    if (_queries.Count > 1 && _parameters.Any(p => p.IsOutputDirection))
+                    {
+                        throw new NotSupportedException("Commands with multiple queries cannot have out parameters");
                     }
-                }
-                sb.Append(')');
-                _queries.Add(new NpgsqlStatement(sb.ToString(), _parameters.Where(p => p.IsInputDirection).ToList()));
-                break;
-            default:
-                throw PGUtil.ThrowIfReached();
+                    break;
+                case CommandType.TableDirect:
+                    _queries.Add(new NpgsqlStatement("SELECT * FROM " + CommandText, new List<NpgsqlParameter>()));
+                    break;
+                case CommandType.StoredProcedure:
+                    var numInput = _parameters.Count(p => p.IsInputDirection);
+                    var sb = new StringBuilder();
+                    sb.Append("SELECT * FROM ");
+                    sb.Append(CommandText);
+                    sb.Append('(');
+                    for (var i = 1; i <= numInput; i++)
+                    {
+                        sb.Append('$');
+                        sb.Append(i);
+                        if (i < numInput)
+                        {
+                            sb.Append(',');
+                        }
+                    }
+                    sb.Append(')');
+                    _queries.Add(new NpgsqlStatement(sb.ToString(), _parameters.Where(p => p.IsInputDirection).ToList()));
+                    break;
+                default:
+                    throw PGUtil.ThrowIfReached();
             }
         }
 
@@ -563,9 +572,11 @@ namespace Npgsql
         internal void ValidateAndCreateMessages(CommandBehavior behavior = CommandBehavior.Default)
         {
             _connector = Connection.Connector;
-            foreach (NpgsqlParameter p in Parameters.Where(p => p.IsInputDirection)) {
+            foreach (NpgsqlParameter p in Parameters.Where(p => p.IsInputDirection))
+            {
                 p.Bind(_connector.TypeHandlerRegistry);
-                if (p.LengthCache != null) {
+                if (p.LengthCache != null)
+                {
                     p.LengthCache.Clear();
                 }
                 p.ValidateAndGetLength();
@@ -573,7 +584,8 @@ namespace Npgsql
 
             // For prepared SchemaOnly queries, we already have the RowDescriptions from the Prepare phase.
             // No need to send anything
-            if (IsPrepared && (behavior & CommandBehavior.SchemaOnly) != 0) {
+            if (IsPrepared && (behavior & CommandBehavior.SchemaOnly) != 0)
+            {
                 return;
             }
 
@@ -583,12 +595,18 @@ namespace Npgsql
             _connector.PrependBackendTimeoutMessage(CommandTimeout);
 
             // Create actual messages depending on scenario
-            if (IsPrepared) {
+            if (IsPrepared)
+            {
                 CreateMessagesPrepared(behavior);
-            } else {
-                if ((behavior & CommandBehavior.SchemaOnly) == 0) {
+            }
+            else
+            {
+                if ((behavior & CommandBehavior.SchemaOnly) == 0)
+                {
                     CreateMessagesNonPrepared(behavior);
-                } else {
+                }
+                else
+                {
                     CreateMessagesSchemaOnly(behavior);
                 }
             }
@@ -632,18 +650,24 @@ namespace Npgsql
                     query.InputParameters,
                     _queries.Count == 1 ? "" : portalNames[i]
                 );
-                if (AllResultTypesAreUnknown) {
+                if (AllResultTypesAreUnknown)
+                {
                     bindMessage.AllResultTypesAreUnknown = AllResultTypesAreUnknown;
-                } else if (i == 0 && UnknownResultTypeList != null) {
+                }
+                else if (i == 0 && UnknownResultTypeList != null)
+                {
                     bindMessage.UnknownResultTypeList = UnknownResultTypeList;
                 }
                 _connector.AddMessage(bindMessage);
             }
 
-            if (_queries.Count == 1) {
+            if (_queries.Count == 1)
+            {
                 _connector.AddMessage(_connector.ExecuteMessage.Populate("", (behavior & CommandBehavior.SingleRow) != 0 ? 1 : 0));
-            } else
-                for (var i = 0; i < _queries.Count; i++) {
+            }
+            else
+                for (var i = 0; i < _queries.Count; i++)
+                {
                     // TODO: Verify SingleRow behavior for multiqueries
                     _connector.AddMessage(new ExecuteMessage(portalNames[i], (behavior & CommandBehavior.SingleRow) != 0 ? 1 : 0));
                     _connector.AddMessage(new CloseMessage(StatementOrPortal.Portal, portalNames[i]));
@@ -670,9 +694,12 @@ namespace Npgsql
 
                 var query = _queries[i];
                 bindMessage.Populate(_connector.TypeHandlerRegistry, query.InputParameters, "", query.PreparedStatementName);
-                if (AllResultTypesAreUnknown) {
+                if (AllResultTypesAreUnknown)
+                {
                     bindMessage.AllResultTypesAreUnknown = AllResultTypesAreUnknown;
-                } else if (i == 0 && UnknownResultTypeList != null) {
+                }
+                else if (i == 0 && UnknownResultTypeList != null)
+                {
                     bindMessage.UnknownResultTypeList = UnknownResultTypeList;
                 }
                 _connector.AddMessage(bindMessage);
@@ -691,10 +718,13 @@ namespace Npgsql
             {
                 ParseMessage parseMessage;
                 DescribeMessage describeMessage;
-                if (i == 0) {
+                if (i == 0)
+                {
                     parseMessage = _connector.ParseMessage;
                     describeMessage = _connector.DescribeMessage;
-                } else {
+                }
+                else
+                {
                     parseMessage = new ParseMessage();
                     describeMessage = new DescribeMessage();
                 }
@@ -744,32 +774,34 @@ namespace Npgsql
         {
             Contract.Requires(!IsPrepared);
 
-            switch (msg.Code) {
-            case BackendMessageCode.CompletedResponse:  // e.g. begin transaction
-            case BackendMessageCode.ParseComplete:
-            case BackendMessageCode.ParameterDescription:
-                return false;
-            case BackendMessageCode.RowDescription:
-                Contract.Assert(_queryIndex < _queries.Count);
-                var description = (RowDescriptionMessage)msg;
-                FixupRowDescription(description, _queryIndex == 0);
-                _queries[_queryIndex].Description = description;
-                if ((behavior & CommandBehavior.SchemaOnly) != 0) {
-                    _queryIndex++;
-                }
-                return false;
-            case BackendMessageCode.NoData:
-                Contract.Assert(_queryIndex < _queries.Count);
-                _queries[_queryIndex].Description = null;
-                return false;
-            case BackendMessageCode.BindComplete:
-                Contract.Assume((behavior & CommandBehavior.SchemaOnly) == 0);
-                return ++_queryIndex == _queries.Count;
-            case BackendMessageCode.ReadyForQuery:
-                Contract.Assume((behavior & CommandBehavior.SchemaOnly) != 0);
-                return true;  // End of a SchemaOnly command
-            default:
-                throw _connector.UnexpectedMessageReceived(msg.Code);
+            switch (msg.Code)
+            {
+                case BackendMessageCode.CompletedResponse:  // e.g. begin transaction
+                case BackendMessageCode.ParseComplete:
+                case BackendMessageCode.ParameterDescription:
+                    return false;
+                case BackendMessageCode.RowDescription:
+                    Contract.Assert(_queryIndex < _queries.Count);
+                    var description = (RowDescriptionMessage)msg;
+                    FixupRowDescription(description, _queryIndex == 0);
+                    _queries[_queryIndex].Description = description;
+                    if ((behavior & CommandBehavior.SchemaOnly) != 0)
+                    {
+                        _queryIndex++;
+                    }
+                    return false;
+                case BackendMessageCode.NoData:
+                    Contract.Assert(_queryIndex < _queries.Count);
+                    _queries[_queryIndex].Description = null;
+                    return false;
+                case BackendMessageCode.BindComplete:
+                    Contract.Assume((behavior & CommandBehavior.SchemaOnly) == 0);
+                    return ++_queryIndex == _queries.Count;
+                case BackendMessageCode.ReadyForQuery:
+                    Contract.Assume((behavior & CommandBehavior.SchemaOnly) != 0);
+                    return true;  // End of a SchemaOnly command
+                default:
+                    throw _connector.UnexpectedMessageReceived(msg.Code);
             }
         }
 
@@ -957,7 +989,8 @@ namespace Npgsql
             }
             catch
             {
-                if (Connection.Connector != null) {
+                if (Connection.Connector != null)
+                {
                     Connection.Connector.EndUserAction();
                 }
 
@@ -1026,7 +1059,8 @@ namespace Npgsql
                 throw new InvalidOperationException("Connection property has not been initialized.");
 
             var connector = Connection.Connector;
-            if (State != CommandState.InProgress) {
+            if (State != CommandState.InProgress)
+            {
                 Log.Debug(String.Format("Skipping cancel because command is in state {0}", State), connector.Id);
                 return;
             }

@@ -11,7 +11,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 namespace Npgsql
 {
     /// <summary>
-    /// Blah
+    /// Represents a connection to a PostgreSQL server.
     /// </summary>
     public interface INpgsqlConnection : IDbConnection, IDisposable, IComponent
     {
@@ -39,12 +39,14 @@ namespace Npgsql
         /// If true, the connection will attempt to use SslStream instead of an internal TlsClientStream.
         /// </summary>
         bool UseSslStream { get; }
+
         /// <summary>
         /// Gets the time to wait while trying to execute a command
         /// before terminating the attempt and generating an error.
         /// </summary>
         /// <value>The time (in seconds) to wait for a command to complete. The default value is 20 seconds.</value>
         int CommandTimeout { get; }
+
         /// <summary>
         /// Gets the time to wait before closing unused connections in the pool if the count
         /// of all connections exeeds MinPoolSize.
@@ -57,34 +59,41 @@ namespace Npgsql
         /// </remarks>
         /// <value>The time (in seconds) to wait. The default value is 15 seconds.</value>
         int ConnectionLifeTime { get; }
+
         /// <summary>
         /// Gets the database server name.
         /// </summary>
         string DataSource { get; }
+
         /// <summary>
         /// Gets flag indicating if we are using Synchronous notification or not.
         /// The default value is false.
         /// </summary>
         bool ContinuousProcessing { get; }
+
         /// <summary>
         /// Whether to use Windows integrated security to log in.
         /// </summary>
         bool IntegratedSecurity { get; }
+
         /// <summary>
         /// User name.
         /// </summary>
         string UserName { get; }
+
         /// <summary>
         /// Gets the current state of the connection.
         /// </summary>
         /// <value>A bitwise combination of the <see cref="System.Data.ConnectionState">ConnectionState</see> values. The default is <b>Closed</b>.</value>
         ConnectionState FullState { get; }
+
         /// <summary>
-        /// Creates and returns a <see cref="NpgsqlCommand">NpgsqlCommand</see>
-        /// object associated with the <see cref="NpgsqlConnection">NpgsqlConnection</see>.
+        /// Creates and returns a <see cref="INpgsqlCommand">INpgsqlCommand</see>
+        /// object associated with the <see cref="INpgsqlConnection">INpgsqlConnection</see>.
         /// </summary>
-        /// <returns>A <see cref="NpgsqlCommand">NpgsqlCommand</see> object.</returns>
-        new NpgsqlCommand CreateCommand();
+        /// <returns>A <see cref="INpgsqlCommand">INpgsqlCommand</see> object.</returns>
+        new INpgsqlCommand CreateCommand();
+
         /// <summary>
         /// Begins a database transaction.
         /// </summary>
@@ -94,19 +103,23 @@ namespace Npgsql
         /// Currently there's no support for nested transactions.
         /// </remarks>
         new NpgsqlTransaction BeginTransaction();
+
         /// <summary>
         /// Enlist transation.
         /// </summary>
         /// <param name="transaction"></param>
         void EnlistTransaction(Transaction transaction);
+
         /// <summary>
         /// Occurs on NoticeResponses from the PostgreSQL backend.
         /// </summary>
         event NoticeEventHandler Notice;
+
         /// <summary>
         /// Occurs on NotificationResponses from the PostgreSQL backend.
         /// </summary>
         event NotificationEventHandler Notification;
+
         /// <summary>
         /// Selects the local Secure Sockets Layer (SSL) certificate used for authentication.
         /// </summary>
@@ -114,6 +127,7 @@ namespace Npgsql
         /// See <see href="https://msdn.microsoft.com/en-us/library/system.net.security.localcertificateselectioncallback(v=vs.110).aspx"/>
         /// </remarks>
         ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; set; }
+
         /// <summary>
         /// Verifies the remote Secure Sockets Layer (SSL) certificate used for authentication.
         /// Ignored if <see cref="NpgsqlConnectionStringBuilder.TrustServerCertificate"/> is set.
@@ -122,20 +136,24 @@ namespace Npgsql
         /// See <see href="https://msdn.microsoft.com/en-us/library/system.net.security.remotecertificatevalidationcallback(v=vs.110).aspx"/>
         /// </remarks>
         RemoteCertificateValidationCallback UserCertificateValidationCallback { get; set; }
+
         /// <summary>
         /// Version of the PostgreSQL backend.
         /// This can only be called when there is an active connection.
         /// </summary>
         Version PostgreSqlVersion { get; }
+
         /// <summary>
         /// PostgreSQL server version.
         /// </summary>
         string ServerVersion { get; }
+
         /// <summary>
         /// Process id of backend server.
         /// This can only be called when there is an active connection.
         /// </summary>
         int ProcessID { get; }
+
         /// <summary>
         /// Report whether the backend is expecting standard conformant strings.
         /// In version 8.1, Postgres began reporting this value (false), but did not actually support standard conformant strings.
@@ -143,14 +161,17 @@ namespace Npgsql
         /// As of version 9.1, this flag defaults to true.
         /// </summary>
         bool UseConformantStrings { get; }
+
         /// <summary>
         /// Report whether the backend understands the string literal E prefix (>= 8.1).
         /// </summary>
         bool Supports_E_StringPrefix { get; }
+
         /// <summary>
         /// Report whether the backend understands the hex byte format (>= 9.0).
         /// </summary>
         bool SupportsHexByteFormat { get; }
+
         /// <summary>
         /// Begins a binary COPY FROM STDIN operation, a high-performance data import mechanism to a PostgreSQL table.
         /// </summary>
@@ -160,6 +181,7 @@ namespace Npgsql
         /// See http://www.postgresql.org/docs/current/static/sql-copy.html.
         /// </remarks>
         NpgsqlBinaryImporter BeginBinaryImport(string copyFromCommand);
+
         /// <summary>
         /// Begins a binary COPY TO STDIN operation, a high-performance data export mechanism from a PostgreSQL table.
         /// </summary>
@@ -169,6 +191,7 @@ namespace Npgsql
         /// See http://www.postgresql.org/docs/current/static/sql-copy.html.
         /// </remarks>
         NpgsqlBinaryExporter BeginBinaryExport(string copyToCommand);
+
         /// <summary>
         /// Begins a textual COPY FROM STDIN operation, a data import mechanism to a PostgreSQL table.
         /// It is the user's responsibility to send the textual input according to the format specified
@@ -181,6 +204,7 @@ namespace Npgsql
         /// See http://www.postgresql.org/docs/current/static/sql-copy.html.
         /// </remarks>
         TextWriter BeginTextImport(string copyFromCommand);
+
         /// <summary>
         /// Begins a textual COPY FROM STDIN operation, a data import mechanism to a PostgreSQL table.
         /// It is the user's responsibility to parse the textual input according to the format specified
@@ -193,6 +217,7 @@ namespace Npgsql
         /// See http://www.postgresql.org/docs/current/static/sql-copy.html.
         /// </remarks>
         TextReader BeginTextExport(string copyToCommand);
+
         /// <summary>
         /// Begins a raw binary COPY operation (TO or FROM), a high-performance data export/import mechanism to a PostgreSQL table.
         /// Note that unlike the other COPY API methods, <see cref="BeginRawBinaryCopy"/> doesn't implement any encoding/decoding
@@ -205,6 +230,7 @@ namespace Npgsql
         /// See http://www.postgresql.org/docs/current/static/sql-copy.html.
         /// </remarks>
         NpgsqlRawCopyStream BeginRawBinaryCopy(string copyCommand);
+
         /// <summary>
         /// Registers an enum type for use with this connection.
         ///
@@ -225,16 +251,19 @@ namespace Npgsql
         /// <typeparam name="TEnum">The .NET enum type to be registered</typeparam>
         void RegisterEnum<TEnum>(string pgName = null)
             where TEnum : struct;
+
         /// <summary>
         /// Returns the supported collections
         /// </summary>
         DataTable GetSchema();
+
         /// <summary>
         /// Returns the schema collection specified by the collection name.
         /// </summary>
         /// <param name="collectionName">The collection name.</param>
         /// <returns>The collection specified.</returns>
         DataTable GetSchema(string collectionName);
+
         /// <summary>
         /// Returns the schema collection specified by the collection name filtered by the restrictions.
         /// </summary>

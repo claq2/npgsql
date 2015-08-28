@@ -34,7 +34,7 @@ namespace Npgsql
     /// <summary>
     /// Represents a transaction to be made in a PostgreSQL database. This class cannot be inherited.
     /// </summary>
-    public sealed class NpgsqlTransaction : DbTransaction
+    public sealed class NpgsqlTransaction : DbTransaction, INpgsqlTransaction
     {
         #region Fields and Properties
 

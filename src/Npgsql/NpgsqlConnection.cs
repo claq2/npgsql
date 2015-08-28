@@ -468,15 +468,15 @@ namespace Npgsql
         /// <returns>A <see cref="System.Data.Common.DbCommand">DbCommand</see> object.</returns>
         protected override DbCommand CreateDbCommand()
         {
-            return CreateCommand();
+            return (DbCommand)CreateCommand();
         }
 
         /// <summary>
-        /// Creates and returns a <see cref="NpgsqlCommand">NpgsqlCommand</see>
-        /// object associated with the <see cref="NpgsqlConnection">NpgsqlConnection</see>.
+        /// Creates and returns a <see cref="INpgsqlCommand">INpgsqlCommand</see>
+        /// object associated with the <see cref="INpgsqlConnection">INpgsqlConnection</see>.
         /// </summary>
-        /// <returns>A <see cref="NpgsqlCommand">NpgsqlCommand</see> object.</returns>
-        public new NpgsqlCommand CreateCommand()
+        /// <returns>A <see cref="INpgsqlCommand">INpgsqlCommand</see> object.</returns>
+        public new INpgsqlCommand CreateCommand()
         {
             CheckNotDisposed();
             return new NpgsqlCommand("", this);
